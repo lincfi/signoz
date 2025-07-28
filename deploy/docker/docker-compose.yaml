@@ -17,10 +17,8 @@ x-clickhouse-defaults: &clickhouse-defaults
     signoz.io/port: "9363"
     signoz.io/path: "/metrics"
   depends_on:
-    init-clickhouse:
-      condition: service_completed_successfully
-    zookeeper-1:
-      condition: service_healthy
+    - init-clickhouse
+    - zookeeper-1
   healthcheck:
     test:
       - CMD
@@ -54,10 +52,8 @@ x-zookeeper-defaults: &zookeeper-defaults
 x-db-depend: &db-depend
   !!merge <<: *common
   depends_on:
-    clickhouse:
-      condition: service_healthy
-    schema-migrator-sync:
-      condition: service_completed_successfully
+    - clickhouse
+    - schema-migrator-sync
 services:
   init-clickhouse:
     !!merge <<: *common
@@ -161,8 +157,7 @@ services:
       - "4317:4317" # OTLP gRPC receiver
       - "4318:4318" # OTLP HTTP receiver
     depends_on:
-      signoz:
-        condition: service_healthy
+      - signoz
   schema-migrator-sync:
     !!merge <<: *common
     image: signoz/signoz-schema-migrator:${OTELCOL_TAG:-v0.128.2}
@@ -172,8 +167,7 @@ services:
       - --dsn=tcp://clickhouse:9000
       - --up=
     depends_on:
-      clickhouse:
-        condition: service_healthy
+      - clickhouse
     restart: on-failure
   schema-migrator-async:
     !!merge <<: *db-depend
